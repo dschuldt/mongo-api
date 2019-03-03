@@ -24,9 +24,6 @@ client = MongoClient(mongo_host, mongo_port, username=mongo_user, password=mongo
 db = client['portals']
 collection = db['kpis']
 
-def route_url(route_name):
-  return '{}://{}{}'.format(request.urlparts.scheme, request.urlparts.netloc, app.get_url(route_name))
-
 @get('/static/<filepath:path>')
 def server_static(filepath):
   return static_file(filepath, root='static')
@@ -41,14 +38,16 @@ def info():
   response.content_type = 'application/json'
   return dumps(client.server_info(), indent=4)
 
-@post('/api/v1/kpi')
-def insert_doc():
+@post('/api/v1/kpi/<id>')
+def insert_doc(id):
   document = request.json
-  #document['_id'] = id
+  document['_id'] = id
   try:
-    id = '{}'.format(collection.insert_one(document).inserted_id)
+    collection.insert_one(document).inserted_id
   except Exception as e:
     print('MongoDB connection error: {}'.format(e))
+    response.content_type = 'application/json'
+    return dumps({"error":"an error occurred during insert"})
   try:
     wsocket = get_wsocket()    
     wsocket.send(get_doc())
@@ -59,13 +58,17 @@ def insert_doc():
 
 @get('/api/v1/kpi/<id>')
 def get_doc(id):
-  response.content_type = 'application/json'
-  return dumps('{}'.format(collection.find_one({"_id": id})), indent=4)
+  if (request.query.callback):
+    response.content_type = "application/javascript"
+    return dumps('{}({})'.format(request.query.callback, collection.find_one({"_id": id}))).strip('\"')
+  else:
+    response.content_type = 'application/json'
+  return dumps(collection.find_one({"_id": id}))
 
 @get('/api/v1/kpi/latest', name="kpi_latest")
 def get_doc():
   response.content_type = 'application/json'
-  return dumps(collection.find_one(sort=[('_id', pymongo.DESCENDING )]), indent=4)
+  return dumps(collection.find_one(sort=[('_id', pymongo.DESCENDING )]))
 
 
 @get('/dashboard')
