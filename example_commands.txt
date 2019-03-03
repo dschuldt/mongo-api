@@ -1,0 +1,11 @@
+insert a kpi -> returns the id of the inserted kpi
+
+  curl -X POST "http://localhost:80/api/v1/kpi" --data '{"foo":"bar","baz":"qux"}' --header "Content-Type: application/json"
+
+
+get latest kpi -> returns latest kpi as json
+
+  curl -X POST "http://localhost:80/api/v1/kpi" --data '{"foo":"2019-03-03","baz":"72390"}' --header "Content-Type: application/json"
+
+
+  
