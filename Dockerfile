@@ -1,5 +1,5 @@
 FROM python:3.7
-LABEL maintainer=d.schuldt@eos-ts.com
+LABEL maintainer=dev@dschuldt.de
 
 COPY app /app
 RUN pip install bottle pymongo gunicorn gevent gevent-websocket 
